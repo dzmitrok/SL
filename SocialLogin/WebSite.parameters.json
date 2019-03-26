@@ -3,7 +3,16 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "hostingPlanName": {
-      "value": null
+      "value": "SLHosting"
+    },
+    "SLRedisName": {
+      "value": "SLRedisName"
+    },
+    "SLServiceDBname": {
+      "value": "SocialLogin"
+    },
+    "SLLogServiceDBname": {
+      "value": "SocialLoginLog"
     }
   }
 }

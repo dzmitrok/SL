@@ -34,10 +34,125 @@
       "metadata": {
         "description": "Describes plan's instance count"
       }
+    },
+    "SLRedisName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "SLRedisSKUName": {
+      "type": "string",
+      "allowedValues": [
+        "Basic",
+        "Standard"
+      ],
+      "defaultValue": "Standard"
+    },
+    "SLRedisSKUFamily": {
+      "type": "string",
+      "allowedValues": [
+        "C"
+      ],
+      "defaultValue": "C"
+    },
+    "SLRedisSKUCapacity": {
+      "type": "int",
+      "allowedValues": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "defaultValue": 0
+    },
+    "SLRedisRedisVersion": {
+      "type": "string",
+      "allowedValues": [
+        "2.8"
+      ],
+      "defaultValue": "2.8"
+    },
+    "slsqlserverAdminLogin": {
+      "type": "string",
+      "minLength": 1
+    },
+    "slsqlserverAdminLoginPassword": {
+      "type": "securestring"
+    },
+    "SLServiceDBname": {
+      "type": "string",
+      "minLength": 1
+    },
+    "SLServiceDBCollation": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+    },
+    "SLServiceDBEdition": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ]
+    },
+    "SLRequestedServiceObjectiveName": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "S0",
+        "S1",
+        "S2",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "metadata": {
+        "description": "Describes the performance level for Edition"
+      }
+    },
+    "SLLogServiceDBname": {
+      "type": "string",
+      "minLength": 1
+    },
+    "SLLogsServiceDBCollation": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+    },
+    "SLLogsServiceDBEdition": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ]
+    },
+    "SLLogsRequestedServiceObjectiveName": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "S0",
+        "S1",
+        "S2",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "metadata": {
+        "description": "Describes the performance level for Edition"
+      }
     }
   },
   "variables": {
-    "webSiteName": "[concat('webSite', uniqueString(resourceGroup().id))]"
+    "webSiteName": "[concat('webSite', uniqueString(resourceGroup().id))]",
+    "slsqlserverName": "[concat('slsqlserver', uniqueString(resourceGroup().id))]"
   },
   "resources": [
     {
@@ -141,145 +256,9 @@
     },
     {
       "apiVersion": "2014-04-01",
-      "name": "[concat('ServerErrors ', variables('webSiteName'))]",
-      "type": "Microsoft.Insights/alertrules",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/sites/', variables('webSiteName'))]"
-      ],
-      "tags": {
-        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('webSiteName'))]": "Resource",
-        "displayName": "ServerErrorsAlertRule"
-      },
-      "properties": {
-        "name": "[concat('ServerErrors ', variables('webSiteName'))]",
-        "description": "[concat(variables('webSiteName'), ' has some server errors, status code 5xx.')]",
-        "isEnabled": false,
-        "condition": {
-          "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
-          "dataSource": {
-            "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
-            "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('webSiteName'))]",
-            "metricName": "Http5xx"
-          },
-          "operator": "GreaterThan",
-          "threshold": 0.0,
-          "windowSize": "PT5M"
-        },
-        "action": {
-          "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
-          "sendToServiceOwners": true,
-          "customEmails": []
-        }
-      }
-    },
-    {
-      "apiVersion": "2014-04-01",
-      "name": "[concat('ForbiddenRequests ', variables('webSiteName'))]",
-      "type": "Microsoft.Insights/alertrules",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/sites/', variables('webSiteName'))]"
-      ],
-      "tags": {
-        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('webSiteName'))]": "Resource",
-        "displayName": "ForbiddenRequestsAlertRule"
-      },
-      "properties": {
-        "name": "[concat('ForbiddenRequests ', variables('webSiteName'))]",
-        "description": "[concat(variables('webSiteName'), ' has some requests that are forbidden, status code 403.')]",
-        "isEnabled": false,
-        "condition": {
-          "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
-          "dataSource": {
-            "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
-            "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('webSiteName'))]",
-            "metricName": "Http403"
-          },
-          "operator": "GreaterThan",
-          "threshold": 0,
-          "windowSize": "PT5M"
-        },
-        "action": {
-          "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
-          "sendToServiceOwners": true,
-          "customEmails": []
-        }
-      }
-    },
-    {
-      "apiVersion": "2014-04-01",
-      "name": "[concat('CPUHigh ', parameters('hostingPlanName'))]",
-      "type": "Microsoft.Insights/alertrules",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
-      ],
-      "tags": {
-        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "Resource",
-        "displayName": "CPUHighAlertRule"
-      },
-      "properties": {
-        "name": "[concat('CPUHigh ', parameters('hostingPlanName'))]",
-        "description": "[concat('The average CPU is high across all the instances of ', parameters('hostingPlanName'))]",
-        "isEnabled": false,
-        "condition": {
-          "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
-          "dataSource": {
-            "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
-            "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]",
-            "metricName": "CpuPercentage"
-          },
-          "operator": "GreaterThan",
-          "threshold": 90,
-          "windowSize": "PT15M"
-        },
-        "action": {
-          "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
-          "sendToServiceOwners": true,
-          "customEmails": []
-        }
-      }
-    },
-    {
-      "apiVersion": "2014-04-01",
-      "name": "[concat('LongHttpQueue ', parameters('hostingPlanName'))]",
-      "type": "Microsoft.Insights/alertrules",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
-      ],
-      "tags": {
-        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "Resource",
-        "displayName": "LongHttpQueueAlertRule"
-      },
-      "properties": {
-        "name": "[concat('LongHttpQueue ', parameters('hostingPlanName'))]",
-        "description": "[concat('The HTTP queue for the instances of ', parameters('hostingPlanName'), ' has a large number of pending requests.')]",
-        "isEnabled": false,
-        "condition": {
-          "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
-          "dataSource": {
-            "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
-            "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]",
-            "metricName": "HttpQueueLength"
-          },
-          "operator": "GreaterThan",
-          "threshold": 100.0,
-          "windowSize": "PT5M"
-        },
-        "action": {
-          "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
-          "sendToServiceOwners": true,
-          "customEmails": []
-        }
-      }
-    },
-    {
-      "apiVersion": "2014-04-01",
       "name": "[variables('webSiteName')]",
       "type": "Microsoft.Insights/components",
-      "location": "East US",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites/', variables('webSiteName'))]"
       ],
@@ -290,6 +269,89 @@
       "properties": {
         "applicationId": "[variables('webSiteName')]"
       }
+    },
+    {
+      "name": "[parameters('SLRedisName')]",
+      "type": "Microsoft.Cache/Redis",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-04-01",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "SLRedis"
+      },
+      "properties": {
+        "sku": {
+          "name": "[parameters('SLRedisSKUName')]",
+          "family": "[parameters('SLRedisSKUFamily')]",
+          "capacity": "[parameters('SLRedisSKUCapacity')]"
+        },
+        "redisVersion": "[parameters('SLRedisRedisVersion')]"
+      }
+    },
+    {
+      "name": "[variables('slsqlserverName')]",
+      "type": "Microsoft.Sql/servers",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2014-04-01-preview",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "slsqlserver"
+      },
+      "properties": {
+        "administratorLogin": "[parameters('slsqlserverAdminLogin')]",
+        "administratorLoginPassword": "[parameters('slsqlserverAdminLoginPassword')]"
+      },
+      "resources": [
+        {
+          "name": "AllowAllWindowsAzureIps",
+          "type": "firewallrules",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', variables('slsqlserverName'))]"
+          ],
+          "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0"
+          }
+        },
+        {
+          "name": "[parameters('SLServiceDBname')]",
+          "type": "databases",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', variables('slsqlserverName'))]"
+          ],
+          "tags": {
+            "displayName": "SL"
+          },
+          "properties": {
+            "collation": "[parameters('SLServiceDBCollation')]",
+            "edition": "[parameters('SLServiceDBEdition')]",
+            "maxSizeBytes": "1073741824",
+            "requestedServiceObjectiveName": "[parameters('SLRequestedServiceObjectiveName')]"
+          }
+        },
+        {
+          "name": "[parameters('SLLogServiceDBname')]",
+          "type": "databases",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', variables('slsqlserverName'))]"
+          ],
+          "tags": {
+            "displayName": "SLLogs"
+          },
+          "properties": {
+            "collation": "[parameters('SLLogsServiceDBCollation')]",
+            "edition": "[parameters('SLLogsServiceDBEdition')]",
+            "maxSizeBytes": "1073741824",
+            "requestedServiceObjectiveName": "[parameters('SLLogsRequestedServiceObjectiveName')]"
+          }
+        }
+      ]
     }
   ]
 }
