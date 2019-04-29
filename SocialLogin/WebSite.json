@@ -76,7 +76,7 @@
     },
     "slsqlserverAdminLogin": {
       "type": "string",
-      "minLength": 1
+      "minLength": 6
     },
     "slsqlserverAdminLoginPassword": {
       "type": "securestring"
@@ -148,11 +148,30 @@
       "metadata": {
         "description": "Describes the performance level for Edition"
       }
+    },
+    "slfailoversqlserverAdminLogin": {
+      "type": "string",
+      "minLength": 6
+    },
+    "slfailoversqlserverAdminLoginPassword": {
+      "type": "securestring"
+    },
+    "slfailoverlocation": {
+      "type": "string",
+      "defaultValue": "eastus",
+      "allowedValues": [
+        "eastasia",
+        "eastus",
+        "northeurope",
+        "australiaeast",
+        "canadacentral"
+      ]
     }
   },
   "variables": {
     "webSiteName": "[concat('webSite', uniqueString(resourceGroup().id))]",
-    "slsqlserverName": "[concat('slsqlserver', uniqueString(resourceGroup().id))]"
+    "slsqlserverName": "[concat('slsqlserver', uniqueString(resourceGroup().id))]",
+    "slfailoversqlserverName": "[concat('slfailoversqlserver', uniqueString(resourceGroup().id))]"
   },
   "resources": [
     {
@@ -349,6 +368,35 @@
             "edition": "[parameters('SLLogsServiceDBEdition')]",
             "maxSizeBytes": "1073741824",
             "requestedServiceObjectiveName": "[parameters('SLLogsRequestedServiceObjectiveName')]"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[variables('slfailoversqlserverName')]",
+      "type": "Microsoft.Sql/servers",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2014-04-01-preview",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "slfailoversqlserver"
+      },
+      "properties": {
+        "administratorLogin": "[parameters('slfailoversqlserverAdminLogin')]",
+        "administratorLoginPassword": "[parameters('slfailoversqlserverAdminLoginPassword')]"
+      },
+      "resources": [
+        {
+          "name": "AllowAllWindowsAzureIps",
+          "type": "firewallrules",
+          "location": "[parameters('slfailoverlocation')]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', variables('slfailoversqlserverName'))]"
+          ],
+          "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0"
           }
         }
       ]
