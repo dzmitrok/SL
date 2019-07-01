@@ -166,10 +166,15 @@
         "australiaeast",
         "canadacentral"
       ]
+    },
+    "ProjectCode": {
+      "type": "string",
+      "defaultValue": "EPM-GESS"
     }
   },
   "variables": {
     "webSiteName": "[concat('webSite', uniqueString(resourceGroup().id))]",
+    "AdminSiteName":"[concat('AdminSite',uniqueString(resourceGroup().id))]",
     "slsqlserverName": "[concat('slsqlserver', uniqueString(resourceGroup().id))]",
     "slfailoversqlserverName": "[concat('slfailoversqlserver', uniqueString(resourceGroup().id))]"
   },
@@ -196,14 +201,31 @@
       "type": "Microsoft.Web/sites",
       "location": "[resourceGroup().location]",
       "tags": {
-        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "Resource",
-        "displayName": "Website"
+        "displayName": "Website",
+        "Project": "[parameters('ProjectCode')]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
       ],
       "properties": {
         "name": "[variables('webSiteName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
+      }
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[variables('AdminSiteName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "AdminSiteName",
+        "Project": "[parameters('ProjectCode')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
+      ],
+      "properties": {
+        "name": "[variables('AdminSiteName')]",
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
       }
     },

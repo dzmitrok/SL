@@ -13,6 +13,9 @@
     },
     "SLLogServiceDBname": {
       "value": "SocialLoginLog"
+    },
+    "ProjectCode":{
+      "value": "EPM-SSO"
     }
   }
 }
